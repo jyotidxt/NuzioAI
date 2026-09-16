@@ -39,8 +39,19 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.session) {
-        router.push("/home");
+      if (data.session && data.user) {
+        // Check onboarding completion status
+        const { data: profile } = await supabase
+          .from("onboarding_profiles")
+          .select("completed_at")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
+        if (profile && profile.completed_at) {
+          router.push("/home");
+        } else {
+          router.push("/onboarding/profession");
+        }
         router.refresh();
       }
     } catch (err: unknown) {
