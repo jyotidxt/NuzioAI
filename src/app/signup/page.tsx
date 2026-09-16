@@ -6,29 +6,42 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
-import { Sparkles, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Sparkles, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
 
-    if (!email || !password) {
-      setError("Please enter both email and password.");
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -39,9 +52,16 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.session) {
-        router.push("/home");
-        router.refresh();
+      if (data.user) {
+        if (data.session) {
+          router.push("/home");
+          router.refresh();
+        } else {
+          setSuccessMsg(
+            "Account created! Please check your email to confirm your account or Sign In."
+          );
+          setLoading(false);
+        }
       }
     } catch (err: unknown) {
       setError((err as Error).message || "An unexpected error occurred.");
@@ -69,22 +89,29 @@ export default function LoginPage() {
         {/* Heading & Subtitle */}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight text-white leading-tight">
-            Good morning.<br />
-            <span className="text-[#7C5CFF] italic font-serif">News on go.</span>
+            Join Nuzio AI.<br />
+            <span className="text-[#7C5CFF] italic font-serif">Stay informed.</span>
           </h1>
           <p className="text-xs text-[#9CA3AF] leading-relaxed">
-            Stay ahead with real-time AI curated news feed tailored for you.
+            Create an account to unlock your personalized AI intelligence feed.
           </p>
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="relative z-10 flex flex-col gap-5 my-auto py-6">
-        <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+      <div className="relative z-10 flex flex-col gap-5 my-auto py-4">
+        <form onSubmit={handleSignUp} className="flex flex-col gap-3.5">
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="flex items-center gap-2 p-3 rounded-2xl bg-[#35E6B5]/15 border border-[#35E6B5]/30 text-[#35E6B5] text-xs">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#35E6B5]" />
+              <span>{successMsg}</span>
             </div>
           )}
 
@@ -102,7 +129,7 @@ export default function LoginPage() {
           <Input
             label="Password"
             type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
+            placeholder="At least 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             iconLeft={<Lock className="w-4 h-4 text-[#9CA3AF]" />}
@@ -121,7 +148,18 @@ export default function LoginPage() {
               </button>
             }
             required
-            autoComplete="current-password"
+            autoComplete="new-password"
+          />
+
+          <Input
+            label="Confirm Password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Re-enter password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            iconLeft={<Lock className="w-4 h-4 text-[#9CA3AF]" />}
+            required
+            autoComplete="new-password"
           />
 
           <Button
@@ -132,19 +170,19 @@ export default function LoginPage() {
             isLoading={loading}
             className="mt-2 shadow-lg shadow-[#7C5CFF]/25"
           >
-            Sign In
+            Create Account
           </Button>
         </form>
 
-        {/* Create Account Link */}
+        {/* Already have an account link */}
         <div className="text-center pt-2">
           <p className="text-xs text-[#9CA3AF]">
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/signup"
+              href="/login"
               className="text-[#7C5CFF] hover:underline font-semibold transition-colors"
             >
-              Create account
+              Sign In
             </Link>
           </p>
         </div>
@@ -153,7 +191,7 @@ export default function LoginPage() {
       {/* Footer Terms & Privacy */}
       <div className="relative z-10 text-center pb-2">
         <p className="text-[11px] text-[#9CA3AF]/70 leading-relaxed">
-          By signing in, you agree to our{" "}
+          By signing up, you agree to our{" "}
           <a href="#" className="underline hover:text-[#9CA3AF]">
             Terms of Service
           </a>{" "}
