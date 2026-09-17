@@ -24,6 +24,11 @@ export default function ProfessionPage() {
   const router = useRouter();
   const { data, updateData, saveProgress } = useOnboarding();
 
+  React.useEffect(() => {
+    // Immediately create / ensure initial row exists for authenticated user
+    saveProgress();
+  }, []);
+
   const handleSelect = (item: string) => {
     updateData({ profession: item });
   };

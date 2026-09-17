@@ -47,12 +47,26 @@ export default function LoginPage() {
           .eq("user_id", data.user.id)
           .maybeSingle();
 
-        if (profile && profile.completed_at) {
-          router.push("/home");
-        } else {
-          router.push("/onboarding/profession");
+        const localOnboarding =
+          typeof window !== "undefined"
+            ? localStorage.getItem("nuzio_onboarding")
+            : null;
+        let isLocallyCompleted = false;
+        if (localOnboarding) {
+          try {
+            const parsed = JSON.parse(localOnboarding);
+            isLocallyCompleted =
+              Boolean(parsed.onboardingCompleted) || Boolean(parsed.completedAt);
+          } catch {
+            // ignore error
+          }
         }
-        router.refresh();
+
+        const isCompleted =
+          isLocallyCompleted || (Boolean(profile) && Boolean(profile?.completed_at));
+
+        const targetRoute = isCompleted ? "/home" : "/onboarding/profession";
+        window.location.href = targetRoute;
       }
     } catch (err: unknown) {
       setError((err as Error).message || "An unexpected error occurred.");

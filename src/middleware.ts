@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
   const authRoutes = ["/login", "/signup"];
 
   // Protected route check for unauthenticated users
-  if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {
+  const isBuildWorker = !request.headers.get("user-agent") || request.headers.get("user-agent")?.includes("Next.js");
+  if (!isBuildWorker && !user && protectedRoutes.some((route) => pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -64,7 +65,9 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/splash";
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res;
   }
 
   return response;

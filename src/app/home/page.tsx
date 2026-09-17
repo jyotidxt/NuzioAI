@@ -25,6 +25,11 @@ export default function HomePage() {
   const [audioProgress, setAudioProgress] = useState(30);
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
 
+  const [narratorVoice, setNarratorVoice] = useState("Aria");
+  const [briefLength, setBriefLength] = useState("5 min");
+
+  const hasCheckedAuth = React.useRef(false);
+
   useEffect(() => {
     setMounted(true);
 
@@ -38,8 +43,11 @@ export default function HomePage() {
       setGreeting("Good Evening");
     }
 
-    // Authenticated user & onboarding profile guard
+    // Authenticated user & onboarding profile guard (runs ONLY ONCE)
     const checkAuthAndFetch = async () => {
+      if (hasCheckedAuth.current) return;
+      hasCheckedAuth.current = true;
+
       try {
         const {
           data: { user },
@@ -56,19 +64,54 @@ export default function HomePage() {
           emailName.charAt(0).toUpperCase() + emailName.slice(1);
         setUserName(user.user_metadata?.full_name || formattedName);
 
-        // Fetch onboarding profile
+        // Fetch onboarding profile exactly once
         const { data: profile } = await supabase
           .from("onboarding_profiles")
-          .select("interests, completed_at")
+          .select("interests, narrator_voice, brief_length, completed_at")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (!profile || !profile.completed_at) {
+        const localOnboarding =
+          typeof window !== "undefined"
+            ? localStorage.getItem("nuzio_onboarding")
+            : null;
+        let parsedLocal: any = null;
+        if (localOnboarding) {
+          try {
+            parsedLocal = JSON.parse(localOnboarding);
+          } catch {
+            // ignore error
+          }
+        }
+
+        const isLocallyCompleted =
+          Boolean(parsedLocal?.onboardingCompleted) ||
+          Boolean(parsedLocal?.completedAt);
+        const isCompleted =
+          isLocallyCompleted || (Boolean(profile) && Boolean(profile?.completed_at));
+
+        if (!isCompleted) {
           router.push("/onboarding/profession");
           return;
         }
 
-        const interests = profile.interests || ["AI & Technology", "Financial Markets", "Startups"];
+        const voice =
+          profile?.narrator_voice || parsedLocal?.narratorVoice || "Aria";
+        const lengthVal = profile?.brief_length
+          ? typeof profile.brief_length === "number"
+            ? `${profile.brief_length} min`
+            : profile.brief_length
+          : parsedLocal?.briefLength || "5 min";
+
+        setNarratorVoice(voice);
+        setBriefLength(lengthVal);
+
+        const interests =
+          profile?.interests && profile.interests.length > 0
+            ? profile.interests
+            : parsedLocal?.interests && parsedLocal.interests.length > 0
+            ? parsedLocal.interests
+            : ["AI & Technology", "Financial Markets", "Startups"];
         setUserInterests(interests);
 
         // Fetch news articles
@@ -169,7 +212,7 @@ export default function HomePage() {
   return (
     <div className="flex-1 flex flex-col p-5 pb-28 gap-5 overflow-y-auto bg-[#050505] text-white">
       {/* Top Header */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between pt-2 shrink-0">
         <div className="flex flex-col gap-0.5">
           <span className="text-xs font-medium text-[#9CA3AF]">
             {greeting},
@@ -190,7 +233,7 @@ export default function HomePage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden bg-gradient-to-br from-[#7C5CFF] to-[#5C3DFF] rounded-[24px] p-5 text-white shadow-xl shadow-[#7C5CFF]/25 border border-white/10"
+        className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#7C5CFF] to-[#5C3DFF] rounded-[24px] p-5 text-white shadow-xl shadow-[#7C5CFF]/25 border border-white/10"
       >
         {/* Background glow circle */}
         <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
@@ -199,11 +242,11 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-semibold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-[#35E6B5]" />
-              <span>AI Audio Digest</span>
+              <span>AI Audio Digest · {narratorVoice}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-white/80 font-medium">
               <Clock className="w-3.5 h-3.5" />
-              <span>5 min</span>
+              <span>{briefLength}</span>
             </div>
           </div>
 
@@ -247,7 +290,7 @@ export default function HomePage() {
       </motion.div>
 
       {/* User Interest Chips */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5 shrink-0">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF] px-1">
           Your Topics
         </h3>
