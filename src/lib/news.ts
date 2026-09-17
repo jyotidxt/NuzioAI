@@ -153,7 +153,7 @@ export async function toggleSavedArticle(userId: string, newsId: string): Promis
     } else {
       await supabase
         .from("saved_articles")
-        .insert({ user_id: userId, news_id: newsId });
+        .upsert({ user_id: userId, news_id: newsId }, { onConflict: "user_id,news_id" });
       return true; // saved
     }
   } catch (err) {
