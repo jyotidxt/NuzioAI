@@ -60,10 +60,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Root path check
+  // Root path check: Every app launch starts at /splash
   if (pathname === "/") {
     const url = request.nextUrl.clone();
-    url.pathname = user ? "/home" : "/login";
+    url.pathname = "/splash";
     return NextResponse.redirect(url);
   }
 
@@ -72,6 +72,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|map|json)$).*)",
   ],
 };
