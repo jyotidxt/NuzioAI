@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const protectedRoutes = ["/home", "/discover", "/settings"];
+  const protectedRoutes = ["/home", "/discover", "/saved", "/settings", "/onboarding"];
   const authRoutes = ["/login", "/signup"];
 
   // Protected route check for unauthenticated users

@@ -4,19 +4,37 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function SplashPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const preferredLang = typeof window !== "undefined" ? localStorage.getItem("preferred_language") : null;
+    const timer = setTimeout(async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          router.replace("/home");
+          return;
+        }
+      } catch {
+        // ignore error and proceed to standard flow
+      }
+
+      const preferredLang =
+        typeof window !== "undefined"
+          ? localStorage.getItem("preferred_language")
+          : null;
+
       if (preferredLang) {
         router.replace("/login");
       } else {
         router.replace("/language");
       }
-    }, 2000);
+    }, 1800);
 
     return () => clearTimeout(timer);
   }, [router]);
