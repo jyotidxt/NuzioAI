@@ -54,13 +54,22 @@ export default function SignUpPage() {
 
       if (data.user) {
         if (data.session) {
-          router.push("/home");
-          router.refresh();
+          window.location.href = "/onboarding/profession";
         } else {
-          setSuccessMsg(
-            "Account created! Please check your email to confirm your account or Sign In."
-          );
-          setLoading(false);
+          // Attempt automatic sign-in immediately so user doesn't have to re-enter email/password
+          const { data: signInData } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (signInData?.session) {
+            window.location.href = "/onboarding/profession";
+          } else {
+            setSuccessMsg(
+              "Account created! If email confirmation is enabled on your Supabase project, please check your inbox, or click Sign In."
+            );
+            setLoading(false);
+          }
         }
       }
     } catch (err: unknown) {

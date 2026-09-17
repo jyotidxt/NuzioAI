@@ -29,11 +29,11 @@ export const BottomNavigation: React.FC<{ items?: NavItem[]; className?: string 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 max-w-[390px] mx-auto pb-6 pt-2 px-4 pointer-events-auto",
+        "fixed bottom-0 left-0 right-0 z-50 max-w-[390px] mx-auto pb-5 pt-2 px-4 pointer-events-auto",
         className
       )}
     >
-      <div className="bg-[#111111]/90 backdrop-blur-xl border border-white/[0.08] rounded-[24px] p-2 flex items-center justify-around shadow-2xl shadow-black/80">
+      <div className="bg-[#111111]/90 backdrop-blur-xl border border-white/[0.1] rounded-[24px] p-2 flex items-center justify-around shadow-2xl shadow-black/80">
         {items.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -43,7 +43,7 @@ export const BottomNavigation: React.FC<{ items?: NavItem[]; className?: string 
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center py-2 px-3 rounded-[18px] transition-colors duration-200 select-none",
+                "relative flex-1 flex flex-col items-center justify-center py-1.5 px-2 rounded-[18px] transition-colors duration-200 select-none",
                 isActive ? "text-[#7C5CFF]" : "text-[#9CA3AF] hover:text-white"
               )}
             >

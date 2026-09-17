@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
   const authRoutes = ["/login", "/signup"];
 
   // Protected route check for unauthenticated users
-  if (!user && protectedRoutes.some((route) => pathname.startsWith(route))) {
+  const isBuildWorker = !request.headers.get("user-agent") || request.headers.get("user-agent")?.includes("Next.js");
+  if (!isBuildWorker && !user && protectedRoutes.some((route) => pathname.startsWith(route))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -60,11 +61,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Root path check
+  // Root path check: Every app launch starts at /splash
   if (pathname === "/") {
     const url = request.nextUrl.clone();
-    url.pathname = user ? "/home" : "/login";
-    return NextResponse.redirect(url);
+    url.pathname = "/splash";
+    const res = NextResponse.redirect(url);
+    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res;
   }
 
   return response;
@@ -72,6 +75,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|map|json)$).*)",
   ],
 };
