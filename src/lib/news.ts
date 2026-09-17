@@ -119,3 +119,57 @@ export async function getNewsArticles(selectedCategory?: string): Promise<NewsAr
     return fallbackArticles;
   }
 }
+
+export async function getSavedNewsIds(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from("saved_articles")
+      .select("news_id")
+      .eq("user_id", userId);
+
+    if (error || !data) return [];
+    return data.map((row) => row.news_id);
+  } catch {
+    return [];
+  }
+}
+
+export async function toggleSavedArticle(userId: string, newsId: string): Promise<boolean> {
+  try {
+    const { data: existing } = await supabase
+      .from("saved_articles")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("news_id", newsId)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("saved_articles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("news_id", newsId);
+      return false; // removed
+    } else {
+      await supabase
+        .from("saved_articles")
+        .insert({ user_id: userId, news_id: newsId });
+      return true; // saved
+    }
+  } catch (err) {
+    console.warn("Failed to toggle saved article in Supabase:", err);
+    return false;
+  }
+}
+
+export async function getSavedArticles(userId: string): Promise<NewsArticle[]> {
+  try {
+    const savedIds = await getSavedNewsIds(userId);
+    if (savedIds.length === 0) return [];
+
+    const allNews = await getNewsArticles();
+    return allNews.filter((article) => savedIds.includes(article.id));
+  } catch {
+    return [];
+  }
+}
