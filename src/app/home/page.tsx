@@ -114,6 +114,13 @@ export default function HomePage() {
             : ["AI & Technology", "Financial Markets", "Startups"];
         setUserInterests(interests);
 
+        // Fetch saved article IDs for user
+        const { getSavedNewsIds, toggleSavedArticle } = await import("@/lib/news");
+        const initialSavedIds = await getSavedNewsIds(user.id);
+        const initialSavedMap: Record<string, boolean> = {};
+        initialSavedIds.forEach((id) => (initialSavedMap[id] = true));
+        setSavedIds(initialSavedMap);
+
         // Fetch news articles
         const fetchedNews = await getNewsArticles();
         setArticles(fetchedNews);
@@ -138,9 +145,22 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+  const toggleBookmark = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSavedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+    const isCurrentlySaved = savedIds[id];
+    setSavedIds((prev) => ({ ...prev, [id]: !isCurrentlySaved }));
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { toggleSavedArticle } = await import("@/lib/news");
+        await toggleSavedArticle(user.id, id);
+      }
+    } catch (err) {
+      console.warn("Toggle bookmark error:", err);
+    }
   };
 
   const filteredArticles =

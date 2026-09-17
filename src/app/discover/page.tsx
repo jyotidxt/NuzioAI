@@ -47,6 +47,12 @@ export default function DiscoverPage() {
           return;
         }
 
+        const { getSavedNewsIds } = await import("@/lib/news");
+        const initialSavedIds = await getSavedNewsIds(user.id);
+        const initialSavedMap: Record<string, boolean> = {};
+        initialSavedIds.forEach((id) => (initialSavedMap[id] = true));
+        setSavedIds(initialSavedMap);
+
         const newsData = await getNewsArticles();
         setArticles(newsData);
       } catch (err) {
@@ -59,9 +65,22 @@ export default function DiscoverPage() {
     checkAuthAndFetch();
   }, [router]);
 
-  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+  const toggleBookmark = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSavedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+    const isCurrentlySaved = savedIds[id];
+    setSavedIds((prev) => ({ ...prev, [id]: !isCurrentlySaved }));
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { toggleSavedArticle } = await import("@/lib/news");
+        await toggleSavedArticle(user.id, id);
+      }
+    } catch (err) {
+      console.warn("Toggle bookmark error:", err);
+    }
   };
 
   const clearSearch = () => {
