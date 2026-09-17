@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Compass, Settings, LogIn } from "lucide-react";
+import { Home, Compass, Bookmark, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -16,8 +16,8 @@ export interface NavItem {
 const defaultNavItems: NavItem[] = [
   { label: "Home", href: "/home", icon: Home },
   { label: "Discover", href: "/discover", icon: Compass },
+  { label: "Saved", href: "/saved", icon: Bookmark },
   { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Login", href: "/login", icon: LogIn },
 ];
 
 export const BottomNavigation: React.FC<{ items?: NavItem[]; className?: string }> = ({
