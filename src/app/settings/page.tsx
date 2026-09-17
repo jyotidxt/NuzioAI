@@ -35,6 +35,8 @@ export default function SettingsPage() {
   const [morningBriefEnabled, setMorningBriefEnabled] = useState(true);
   const [breakingNewsEnabled, setBreakingNewsEnabled] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -108,6 +110,21 @@ export default function SettingsPage() {
     checkAuthAndFetch();
   }, [router]);
 
+  const handleSaveName = async () => {
+    if (!newName.trim()) return;
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: newName.trim() },
+      });
+      if (!error) {
+        setUserName(newName.trim());
+        setIsEditingName(false);
+      }
+    } catch (err) {
+      console.warn("Failed to update name:", err);
+    }
+  };
+
   const handleSignOut = async () => {
     setLoggingOut(true);
     try {
@@ -151,21 +168,52 @@ export default function SettingsPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF] px-1">
           Account
         </h2>
-        <Card className="p-4 bg-[#181818] border-white/[0.08] rounded-[24px] flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#7C5CFF] to-[#35E6B5] flex items-center justify-center text-white font-bold text-base shadow-md shadow-[#7C5CFF]/20 border border-white/20 select-none shrink-0">
-              {userName.slice(0, 2).toUpperCase()}
+        <Card className="p-4 bg-[#181818] border-white/[0.08] rounded-[24px] flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#7C5CFF] to-[#35E6B5] flex items-center justify-center text-white font-bold text-base shadow-md shadow-[#7C5CFF]/20 border border-white/20 select-none shrink-0">
+                {userName.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex flex-col gap-0.5 overflow-hidden">
+                <span className="text-base font-bold text-white truncate">
+                  {userName}
+                </span>
+                <span className="text-xs text-[#9CA3AF] truncate flex items-center gap-1">
+                  <Mail className="w-3 h-3 shrink-0" />
+                  {userEmail || "user@example.com"}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col gap-0.5 overflow-hidden">
-              <span className="text-base font-bold text-white truncate">
-                {userName}
-              </span>
-              <span className="text-xs text-[#9CA3AF] truncate flex items-center gap-1">
-                <Mail className="w-3 h-3 shrink-0" />
-                {userEmail || "user@example.com"}
-              </span>
-            </div>
+            <button
+              onClick={() => {
+                setNewName(userName);
+                setIsEditingName(!isEditingName);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-white hover:border-[#7C5CFF] transition-colors"
+            >
+              {isEditingName ? "Cancel" : "Edit Name"}
+            </button>
           </div>
+
+          {isEditingName && (
+            <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Enter new full name"
+                className="flex-1 bg-[#111111] text-xs text-white px-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-[#7C5CFF]"
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveName}
+                className="text-xs px-3 py-2 h-8 shrink-0"
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
 

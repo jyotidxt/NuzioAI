@@ -1,18 +1,32 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useOnboarding } from "@/lib/onboarding-context";
+import { supabase } from "@/lib/supabase";
 import { Check, Sparkles, Volume2, Clock, Briefcase, Heart, Play } from "lucide-react";
 
 export default function OnboardingCompletePage() {
   const router = useRouter();
   const { data, markComplete } = useOnboarding();
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
     markComplete();
+
+    const fetchUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const emailName = user.email ? user.email.split("@")[0] : "";
+          const formattedName = emailName ? emailName.charAt(0).toUpperCase() + emailName.slice(1) : "";
+          setUserName(user.user_metadata?.full_name || formattedName);
+        }
+      } catch {}
+    };
+    fetchUser();
   }, []);
 
   const handleStart = async () => {
@@ -30,7 +44,7 @@ export default function OnboardingCompletePage() {
 
         <div className="flex flex-col gap-1.5">
           <h1 className="text-3xl font-bold tracking-tight text-white">
-            You&apos;re ready.
+            {userName ? `You're ready, ${userName}.` : "You're ready."}
           </h1>
           <p className="text-xs text-[#9CA3AF] max-w-[280px] leading-relaxed">
             Your daily audio briefing has been personalized and queued for listening.
