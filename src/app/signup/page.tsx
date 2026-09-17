@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
-import { Sparkles, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Sparkles, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, User } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,7 +24,7 @@ export default function SignUpPage() {
     setError(null);
     setSuccessMsg(null);
 
-    if (!email || !password || !confirmPassword) {
+    if (!fullName.trim() || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
     }
@@ -44,6 +45,11 @@ export default function SignUpPage() {
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
       });
 
       if (authError) {
@@ -123,6 +129,17 @@ export default function SignUpPage() {
               <span>{successMsg}</span>
             </div>
           )}
+
+          <Input
+            label="Full Name"
+            type="text"
+            placeholder="Alex Smith"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            iconLeft={<User className="w-4 h-4 text-[#9CA3AF]" />}
+            required
+            autoComplete="name"
+          />
 
           <Input
             label="Email address"
