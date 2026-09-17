@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("Alex");
   const [greeting, setGreeting] = useState("Good Morning");
@@ -25,6 +26,8 @@ export default function HomePage() {
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    setMounted(true);
+
     // Determine time-of-day greeting
     const hour = new Date().getHours();
     if (hour < 12) {
@@ -105,6 +108,63 @@ export default function HomePage() {
         );
 
   const chipsList = ["All", ...userInterests];
+
+  if (!mounted) {
+    return (
+      <div className="flex-1 flex flex-col p-5 pb-28 gap-5 overflow-y-auto bg-[#050505] text-white">
+        {/* Top Header Placeholder */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col gap-1">
+            <div className="w-24 h-3.5 bg-white/[0.08] rounded-full animate-pulse" />
+            <div className="w-32 h-6 bg-white/[0.08] rounded-full animate-pulse" />
+          </div>
+          <div className="w-10 h-10 rounded-full bg-white/[0.08] animate-pulse" />
+        </div>
+
+        {/* Featured Card Placeholder */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#7C5CFF] to-[#5C3DFF] rounded-[24px] p-5 text-white shadow-xl border border-white/10 opacity-80">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="w-28 h-6 bg-white/20 rounded-full animate-pulse" />
+              <div className="w-12 h-4 bg-white/20 rounded-full animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="w-48 h-6 bg-white/20 rounded-full animate-pulse" />
+              <div className="w-36 h-4 bg-white/20 rounded-full animate-pulse" />
+            </div>
+            <div className="flex items-center gap-3 pt-1">
+              <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
+              <div className="flex-1 h-2 bg-white/20 rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Chips Placeholder */}
+        <div className="flex flex-col gap-2.5">
+          <div className="w-24 h-3 bg-white/[0.08] rounded-full animate-pulse" />
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="w-20 h-8 bg-white/[0.08] rounded-2xl animate-pulse shrink-0" />
+            ))}
+          </div>
+        </div>
+
+        {/* News Feed Skeleton */}
+        <div className="flex flex-col gap-4 pt-1">
+          <div className="w-28 h-3 bg-white/[0.08] rounded-full animate-pulse" />
+          {[1, 2].map((n) => (
+            <div key={n} className="bg-[#181818] border border-white/[0.08] rounded-[24px] p-4 flex flex-col gap-3 animate-pulse">
+              <div className="w-full h-40 bg-white/[0.05] rounded-2xl" />
+              <div className="w-1/3 h-4 bg-white/[0.08] rounded-full" />
+              <div className="w-full h-5 bg-white/[0.08] rounded-full" />
+            </div>
+          ))}
+        </div>
+
+        <BottomNavigation />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col p-5 pb-28 gap-5 overflow-y-auto bg-[#050505] text-white">
